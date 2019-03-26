@@ -1,2 +1,2 @@
 # five-quadrillion
-Five Quadrillion: The Value of the Earth is an interactive emotional interpretation of the quantification of planetary value using a simplistic equation by Greg Laughlin of UC Santa Cruz
+Five Quadrillion: The Value of the Earth is an interactive, knee-jerk emotional response to the quantification of planetary value by Greg Laughlin of UC Santa Cruz.
