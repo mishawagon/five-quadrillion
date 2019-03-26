@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Five Quadrillion: The Value of the Earth by Caitlin & Misha</title>
+    <script src="node_modules/pixi.js/dist/pixi.js"></script>
+    <script src="tink/bin/tink.js"></script>
+
+    <script src="node_modules/pixi-particles/dist/pixi-particles.js"></script>
+    <script src="sound.js/sound.js"></script>
+
+    <script src="js/stats.js"></script>
+
+    <script src="js/jquery.min.js"></script>
+
+    <script src="js/progressbar.js"></script>
+
+    <link href="css/style.css" rel="stylesheet">
+
+    <!--favicons generated with https://realfavicongenerator.net/-->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="favicons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="favicons/manifest.json">
+    <link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="favicons/favicon.ico">
+    <meta name="msapplication-config" content="favicons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+  </head>
+
+  <body>
+
+    <div id="container"></div>
+
+
+
+    <canvas id="backgradient"></canvas>
+
+
+    <script>
+    PIXI.settings.SCALE_MODE.DEFAULT = PIXI.settings.SCALE_MODE.NEAREST;
+
+    var stats = new Stats();
+    stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+    //document.getElementById("gradient").appendChild( stats.dom );
+
+    //New Formula Values Earth at $5,000,000,000,000,000 (5 quadrillion)
+    //http://www.treehugger.com/natural-sciences/new-formula-values-earth-at-5000000000000000.html
+
+    var max_earth_value = 5000000000000000;
+
+
+    //Aliases
+    var Container = PIXI.Container,
+        autoDetectRenderer = PIXI.autoDetectRenderer,
+        loader = PIXI.loader,
+        resources = PIXI.loader.resources,
+        Sprite = PIXI.Sprite,
+        AnimatedSprite = PIXI.extras.AnimatedSprite,
+        Text = PIXI.Text;
+        ParticleContainer = PIXI.particles.ParticleContainer;
+
+    //Create a Pixi stage and renderer and add the
+    //renderer.view to the DOM
+    var stage = new Container(),
+    renderer = autoDetectRenderer(1539, 2048, {antialias: false, transparent: true, resolution: 1});
+
+    var ratio = window.innerHeight / 2048;
+    var multiplier = 1.215;
+
+    //ipad pro 10" 1190
+    //ipad air 2 safari: 1184, chrome: 1160
+    //laptop Safari 786, Chrome 1006
+
+
+
+    if ((window.innerWidth/window.innerHeight) <= .70) {
+      multiplier = .95;
+
+    }
+    if (window.innerWidth/window.innerHeight > .70 && window.innerWidth/window.innerHeight <= .79) {
+      multiplier = 1.15;
+    }
+    if (window.innerWidth/window.innerHeight > .79) {
+      multiplier = 2.3;
+    }
+    if (window.innerWidth/window.innerHeight > 1) {
+      multiplier = 1.15;
+    }
+
+    //alert(window.innerWidth/window.innerHeight)
+    //alert(multiplier)
+
+    stage.scale.y = stage.scale.x = ratio * multiplier;
+
+    // progressbar.js@1.0.0 version is used
+    // Docs: http://progressbarjs.readthedocs.org/en/1.0.0/
+    var line = new ProgressBar.Line('#container');
+    var bar = new ProgressBar.Circle(container, {
+      color: '#aaa',
+      // This has to be the same size as the maximum width to
+      // prevent clipping
+      strokeWidth: 4,
+      trailWidth: 1,
+      easing: 'easeInOut',
+      duration: 1400,
+      text: {
+        autoStyleContainer: false
+      },
+      from: { color: '#aaa', width: 1 },
+      to: { color: '#333', width: 4 },
+      // Set default step function for all animate calls
+      step: function(state, circle) {
+        circle.path.setAttribute('stroke', state.color);
+        circle.path.setAttribute('stroke-width', state.width);
+
+        var value = Math.round(circle.value() * 100);
+        if (value === 0) {
+          circle.setText('');
+        } else {
+          circle.setText(value);
+        }
+
+      }
+    });
+    bar.text.style.fontFamily = 'Helvetica, sans-serif';
+    bar.text.style.fontSize = '2rem';
+
+    bar.animate(1.0);  // Number from 0.0 to 1.0
+
+
+    //renderer.backgroundColor = 0x0000ff;
+
+    //Create the `ParticleContainer` and add it to the `stage`
+    var newContainer = new ParticleContainer(
+      20000,
+      {alpha: true, scale: false, rotation: true, uvs: false}
+    );
+    var newContainer2 = new ParticleContainer(
+      20000,
+      {alpha: true, scale: false, rotation: true, uvs: false}
+    );
+    var smokeContainer = new ParticleContainer(
+      20000,
+      {alpha: true, scale: false, rotation: true, uvs: false}
+    );
+    var assplosionContainer = new Container(
+      20000,
+      {alpha: true, scale: false, rotation: true, uvs: false}
+    );
+
+
+
+    // Create a new emitter
+    var emitter = new PIXI.particles.Emitter(
+
+        // The PIXI.Container to put the emitter in
+        // if using blend modes, it's important to put this
+        // on top of a bitmap, and not use the root stage Container
+        newContainer,
+
+        // The collection of particle images to use
+        [PIXI.Texture.fromImage('img/bill.png')],
+
+        // Emitter configuration, edit this to change the look
+        // of the emitter
+        {
+            alpha: {
+                start: 1,
+                end: 1
+            },
+            scale: {
+                start: .3,
+                end: 0.6
+            },
+            color: {
+                start: "fb1010",
+                end: "f5b830"
+            },
+            speed: {
+                start: 200,
+                end: 200
+            },
+            acceleration: {
+						    x:-60,
+						    y: 200
+					  },
+            startRotation: {
+                min: 0,
+                max: 60
+            },
+            rotationSpeed: {
+                min: 10,
+                max: 40
+            },
+            lifetime: {
+                min: 5,
+                max: 5
+            },
+            frequency: 0.005,
+            emitterLifetime: 0,
+            maxParticles: 1000,
+            pos: {
+                x: 550,
+                y: 530
+            },
+            addAtBack: true,
+            spawnType: "circle",
+            spawnCircle: {
+                x: 0,
+                y: 0,
+                r: 10
+            },
+            emit: false
+        }
+    );
+
+
+    // Create a new emitter
+    var emitter2 = new PIXI.particles.Emitter(
+
+        // The PIXI.Container to put the emitter in
+        // if using blend modes, it's important to put this
+        // on top of a bitmap, and not use the root stage Container
+        newContainer2,
+
+        // The collection of particle images to use
+        [PIXI.Texture.fromImage('img/bill_front.png')],
+
+        // Emitter configuration, edit this to change the look
+        // of the emitter
+        {
+            alpha: {
+                start: 1,
+                end: 1
+            },
+            scale: {
+                start: .3,
+                end: 0.6
+            },
+            color: {
+                start: "fb1010",
+                end: "f5b830"
+            },
+            speed: {
+                start: 200,
+                end: 200
+            },
+            acceleration: {
+                x:-60,
+                y: 200
+            },
+            startRotation: {
+                min: 0,
+                max: 60
+            },
+            rotationSpeed: {
+                min: 10,
+                max: 40
+            },
+            lifetime: {
+                min: 5,
+                max: 5
+            },
+            frequency: 0.005,
+            emitterLifetime: 0,
+            maxParticles: 1000,
+            pos: {
+                x: 550,
+                y: 560
+            },
+            addAtBack: true,
+            spawnType: "circle",
+            spawnCircle: {
+                x: 0,
+                y: 0,
+                r: 10
+            },
+            emit: false
+        }
+    );
+
+    var emitter3;
+
+    var assplosion = new PIXI.particles.Emitter(
+      assplosionContainer,
+      [PIXI.Texture.fromImage('img/particle.png')],
+      {
+      	"alpha": {
+      		"start": 0.74,
+      		"end": 0
+      	},
+      	"scale": {
+      		"start": 5,
+      		"end": 1.2,
+      		"minimumScaleMultiplier": 1
+      	},
+      	"color": {
+      		"start": "#ff6600",
+      		"end": "#100f0c"
+      	},
+      	"speed": {
+      		"start": 700,
+      		"end": 0,
+      		"minimumSpeedMultiplier": 1
+      	},
+      	"acceleration": {
+      		"x": 0,
+      		"y": 0
+      	},
+      	"maxSpeed": 0,
+      	"startRotation": {
+      		"min": 0,
+      		"max": 360
+      	},
+      	"noRotation": false,
+      	"rotationSpeed": {
+      		"min": 0,
+      		"max": 200
+      	},
+      	"lifetime": {
+      		"min": 0.5,
+      		"max": 1
+      	},
+      	"blendMode": "normal",
+      	"ease": [
+      		{
+      			"s": 0,
+      			"cp": 0.329,
+      			"e": 0.548
+      		},
+      		{
+      			"s": 0.548,
+      			"cp": 0.767,
+      			"e": 0.876
+      		},
+      		{
+      			"s": 0.876,
+      			"cp": 0.985,
+      			"e": 1
+      		}
+      	],
+      	"frequency": 0.001,
+      	"emitterLifetime": 0.1,
+      	"maxParticles": 100,
+      	"pos": {
+      		"x": 0,
+      		"y": 0
+      	},
+      	"addAtBack": true,
+      	"spawnType": "point"
+      }
+    )
+
+    function getEarthPos(dimmy) {
+
+      var the_x = (earth_x_left_thresh + earth_x_right_thresh)/2;
+      var the_y = (earth_y_lower_thresh + earth_y_upper_thresh)/2;
+      if (dimmy == "x") {
+        return the_x;
+      } else {
+        return the_y;
+      }
+    }
+
+    // Calculate the current time
+    var elapsed = Date.now();
+
+
+
+    document.body.appendChild(renderer.view);
+
+    sounds.load([
+      "audio/rumbling.mp3",
+      "audio/saw1.mp3",
+      "audio/saw2.mp3",
+      "audio/saw3.mp3",
+      "audio/backgroundSound.mp3",
+      "audio/burnLoop.mp3",
+      "audio/igniteSound.mp3",
+      "audio/380324__praxis-bard__plunger-pop.wav"
+    ]);
+    var saws = [];
+    sounds.whenLoaded = setupAudio;
+    var rumbling,saw1,saw2,saw3,random_saw, message, vid, ignite, burn, toggle_burn;
+
+    function setupAudio(){
+      rumbling = sounds["audio/rumbling.mp3"],
+      saw1 = sounds["audio/saw1.mp3"],
+      saw2 = sounds["audio/saw2.mp3"],
+      saw3 = sounds["audio/saw3.mp3"],
+      lordofthelotr = sounds["audio/backgroundSound.mp3"],
+      ignite = sounds["audio/igniteSound.mp3"],
+      burn = sounds["audio/burnLoop.mp3"],
+      pop = sounds["audio/380324__praxis-bard__plunger-pop.wav"];
+
+      saw1.loop = true;
+      saw2.loop = true;
+      saw3.loop = true;
+      burn.loop = true;
+
+      saw1.volume = .15;saw2.volume = .15;saw3.volume = .06;
+
+      burn.volume = ignite.volume = 1;
+
+      saws = [saw1,saw2,saw3]
+      random_saw = saws[Math.round(Math.random()*2)];
+
+      rumbling.loop = true;
+      rumbling.volume = .2;
+      //rumbling.playFrom(0); //maybe rumbling shouldn't always be going. I don't want it to infect the whole vibe of the exhibition. Maybe for the web version it would be good.
+
+      lordofthelotr.loop = true;
+      lordofthelotr.volume = 0;
+
+
+      //load an image and run the `setup` function when it's done
+      loader
+        .add("img/earth.png") //https://static.pexels.com/photos/2422/sky-earth-galaxy-universe.jpg
+        .add("img/dead_earth.png")
+        .add("img/blank_earth.png")
+        .add("grinder_back", "img/meat-grinder-back.png")
+        .add("grinder_front", "img/meat-grinder-front.png")
+        .add("bill", "img/bill.png")
+        .add("bill_front", "img/bill_front.png")
+        .add("smokeParticle", "img/smokeparticle.png") //smoke particle image from <a href="http://stemkoski.github.io/Three.js/images/smokeparticle.png">Three.js</a>
+        .add("particle", "img/particle.png") //assplosion particle
+        .on("progress", loadProgressHandler)
+        .load(setup);
+    }
+
+
+    function loadProgressHandler(loader, resource) {
+      //Display the file `url` currently being loaded
+      console.log("loading: " + resource.url);
+      //Display the precentage of files currently loaded
+      console.log("progress: " + loader.progress + "%");
+      //If you gave your files names as the first argument
+      //of the `add` method, you can access them like this
+      //console.log("loading: " + resource.name);
+    }
+
+    var earth, state, earth_grind, grinder_back, grinder_front, bill, bill_front, fadeSmoke;
+    var money_sum = 0;
+
+    var earth_y_lower_thresh = 388;
+    var earth_y_upper_thresh = 370;
+
+    var earth_x_left_thresh = 335;
+    var earth_x_right_thresh = 343;
+
+    var grind_v_offset = 100;
+
+    assplosionContainer.x = (earth_x_left_thresh + earth_x_right_thresh)/2;
+    assplosionContainer.y = (earth_y_lower_thresh + earth_y_upper_thresh)/2;
+
+    var t = new Tink(PIXI, renderer.view);
+
+    var pointer = t.makePointer();
+
+    var prev_pointer_x, prev_pointer_y;
+
+    var timey;
+
+    function updateMoney(direction){
+      money_sum = Math.round(money_sum+direction*Math.random()*10000000000000*.97);
+
+      earth.alpha =1- money_sum / max_earth_value;
+
+      if (direction == -1) {
+        money_sum = money_sum < 0 ? 0 : money_sum
+      }
+      return "$"+formatThousandsNoRounding(money_sum);
+    }
+
+    var unpress_timer;
+
+    pointer.release = function(){
+      var release_time_offset = state == play ? (2000+parseInt(Math.random()*2000)) : 0;
+      clearTimeout(unpress_timer)
+
+      unpress_timer = setTimeout(function(){
+        clearTimeout(timey);
+        earth_grind = false;
+        earth.alpha =1 - money_sum / max_earth_value;
+        the_i = 0;
+        the_j = 0;
+
+        earth.y = 270;dead_earth.y = earth.y;dead_earth_smoke_holder.y = earth.y;dead_earth_backer.y = earth.y;
+        earth.x = 340;dead_earth.x = earth.x;dead_earth_smoke_holder.x = earth.x;dead_earth_backer.x = earth.x;
+        random_saw.pause();
+        lordofthelotr.pause();
+        lordofthelotr.volume = 0;
+
+        random_saw = saws[Math.round(Math.random()*2)];
+
+        //fadeout smoke
+        fadeSmoke = true;
+
+        burn.pause();
+        ignite.pause();
+        lordofthelotr.pause();
+
+      }, release_time_offset)
+
+    }
+
+    pointer.press = function(resetter){
+      //prevent first click in a new place bill shooting bug
+      prev_pointer_x = pointer.x;
+      prev_pointer_y = pointer.y;
+      //
+
+      clearTimeout(unpress_timer)
+      if (state != play) {
+        return;
+      }
+
+      earth_grind = true;
+      //clearTimeout(unpress_timer)
+      //unpress_timer = setTimeout(function(){unpress()}, 5000)
+
+      if (earth_grind) {
+        burn.volume = ignite.volume = 1;
+        clearTimeout(timey);
+
+        //message.position.set(54, 96);
+        dead_earth.alpha = 1; //get ready to show smoke
+        fadeSmoke = false;
+
+        earth.y += grind_v_offset;
+        dead_earth.y = earth.y;
+        dead_earth_smoke_holder.y = earth.y;dead_earth_backer.y = earth.y;
+        random_saw.playFrom(0);
+        timey = setTimeout(function(){
+          lordofthelotr.pause();
+          lordofthelotr.volume = 0;
+          lordofthelotr.play();
+          lordofthelotr.fade(.25,2);
+        }, 1200)
+
+      }
+    }
+
+    pointer.tap = function () {
+      //return console.log("The pointer was tapped");
+    };
+    var particleStream = []
+    var particleStream2 = []
+    var money_fountains = 2;
+    var earths = new Container();
+
+    function setup() {
+      $("#container").css("display","none");
+
+      var style = new PIXI.TextStyle({
+        fontFamily: 'Helvetica',
+        fontSize: 100,
+        //fontStyle: 'oblique',
+        fontWeight: 'bold',
+        fill: ['#999', '#999'], // gradient
+        stroke: '#53625c',
+        strokeThickness: 5,
+        dropShadow: true,
+        dropShadowColor: 'green',
+        dropShadowBlur: 4,
+        dropShadowAngle: Math.PI / 6,
+        dropShadowDistance: 6,
+        wordWrap: false,
+        wordWrapWidth: 7,
+        padding: 300,
+      });
+
+      message = new Text("$",style);
+      message.blendMode = PIXI.BLEND_MODES.SCREEN;
+      message.position.set(54, 46);
+
+      var c=document.getElementById('myCanvas');
+      var ctx=c.getContext('2d');
+      ctx.font='100px Helvetica';
+      //ctx.fontStyle="oblique";
+      ctx.fontWeight="bold";
+      var m=ctx.measureText("$$"+formatThousandsNoRounding(max_earth_value)); //one dollar sign to match the display and one more for padding
+
+      //message.scale.y = message.scale.x = window.innerWidth/m.width;
+
+      //message.position.set(-50054, 96);
+
+
+      //Create the `earth` sprite
+      earth = new Sprite(resources["img/earth.png"].texture);
+      dead_earth = new Sprite(resources["img/blank_earth.png"].texture);
+      dead_earth_backer = new Sprite(resources["img/dead_earth.png"].texture);
+      dead_earth_smoke_holder = new Sprite(resources["img/dead_earth.png"].texture);
+
+
+      earths.addChild(earth);
+      earths.addChild(dead_earth);
+      earths.addChild(dead_earth_smoke_holder);
+      earths.addChild(dead_earth_backer);
+
+      grinder_front = new Sprite(resources.grinder_front.texture);
+      grinder_back = new Sprite(resources.grinder_back.texture);
+      grinder_front.scale.x = 0.6;grinder_front.scale.y = 0.6;
+      grinder_back.scale.x = 0.6;grinder_back.scale.y = 0.6;
+
+      grinder_front.y = 350;
+      grinder_back.y = 350;
+      grinder_front.x = -100;
+      grinder_back.x = -100;
+
+      bill = new Sprite(resources.bill.texture);
+      bill.visible = false;
+
+      bill_front = new Sprite(resources.bill_front.texture);
+      bill_front.visible = false;
+
+      earth.y = 270;
+      earth.x = 340;
+      earth.vx = 0;
+      earth.vy = 0;
+      earth.scale.x = 1;//0.055;
+      earth.scale.y = 1;//0.055;
+      earth.anchor.x = 0.5;
+      earth.anchor.y = 0.5;
+      earth.alpha = 0;
+
+
+      dead_earth.y = 270;
+      dead_earth.x = 340;
+      dead_earth.vx = 0;
+      dead_earth.vy = 0;
+      dead_earth.scale.x = 1;
+      dead_earth.scale.y = 1;
+      dead_earth.anchor.x = 0.5;
+      dead_earth.anchor.y = 0.5;
+
+
+      dead_earth_smoke_holder.y = 270;
+      dead_earth_smoke_holder.x = 340;
+      dead_earth_smoke_holder.vx = 0;
+      dead_earth_smoke_holder.vy = 0;
+      dead_earth_smoke_holder.scale.x = 1;
+      dead_earth_smoke_holder.scale.y = 1;
+      dead_earth_smoke_holder.anchor.x = 0.5;
+      dead_earth_smoke_holder.anchor.y = 0.5;
+
+      dead_earth_smoke_holder.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+
+      dead_earth_backer.y = 270;
+      dead_earth_backer.x = 340;
+      dead_earth_backer.vx = 0;
+      dead_earth_backer.vy = 0;
+      dead_earth_backer.scale.x = 1;
+      dead_earth_backer.scale.y = 1;
+      dead_earth_backer.anchor.x = 0.5;
+      dead_earth_backer.anchor.y = 0.5;
+
+      earth.circular = true;
+      stage.addChild(message);
+      stage.addChild(grinder_back);
+
+      stage.addChild(dead_earth_backer);
+      stage.addChild(dead_earth);
+      stage.addChild(dead_earth_smoke_holder);
+      stage.addChild(earth);
+
+
+      stage.addChild(bill);
+      stage.addChild(bill_front);
+
+      stage.addChild(newContainer);
+      stage.addChild(newContainer2);
+
+
+      dead_earth_smoke_holder.addChild(smokeContainer);
+
+      // Set up the smoke emitter
+      emitter3 = new PIXI.particles.Emitter(
+
+          // The PIXI.Container to put the emitter in
+          // if using blend modes, it's important to put this
+          // on top of a bitmap, and not use the root stage Container
+          dead_earth,
+          [PIXI.Texture.fromImage('img/smokeparticle.png')],
+          // Emitter configuration, edit this to change the look
+          // of the emitter
+          {
+            "alpha": {
+              "start": 0.45,
+              "end": 0
+            },
+            "scale": {
+              "start": 1.15,
+              "end": 1,
+              "minimumScaleMultiplier": 1
+            },
+            "color": {
+              "start": "#85888d",
+              "end": "#100f0c"
+            },
+            "speed": {
+              "start": 300,
+              "end": 700,
+              "minimumSpeedMultiplier": 1
+            },
+            "acceleration": {
+              "x": 0,
+              "y": 0
+            },
+            "maxSpeed": 0,
+            "startRotation": {
+              "min": 250,
+              "max": 290
+            },
+            "noRotation": false,
+            "rotationSpeed": {
+              "min": 0,
+              "max": 0
+            },
+            "lifetime": {
+              "min": 0.5,
+              "max": 1
+            },
+            "blendMode": "normal",
+            "frequency": 0.001,
+            "emitterLifetime": -1,
+            "maxParticles": 500,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "addAtBack": true,
+            "spawnType": "point"
+          }
+      );
+
+      stage.addChild(grinder_front);
+      stage.addChild(assplosionContainer);
+
+      //Set the game state
+      state = play;
+
+      //Start the game loop
+      gameLoop();
+
+      renderer.view.style.position = "absolute";
+      renderer.view.style.display = "block";
+      renderer.autoResize = true;
+      renderer.resize(window.innerWidth, window.innerHeight);
+
+      var backcanv = document.getElementById("backgradient");
+      backcanv.style.width = window.innerWidth + "px";
+      backcanv.style.height = window.innerHeight + "px";
+
+    }
+
+    function gameLoop() {
+      //stats.begin();
+      t.update();
+      state();
+      renderer.render(stage);
+      if (earth_grind) {
+        gradient.updateStops();
+        gradient.draw();
+      };
+      //stats.end();
+      requestAnimationFrame(gameLoop);
+      var now = Date.now();
+      emitter.update((now-elapsed)*0.001);
+      emitter2.update((now-elapsed)*0.001);
+      emitter3.update((now-elapsed)*0.001);
+      assplosion.update((now-elapsed)*0.001);
+      elapsed = now;
+    }
+
+    var formatThousandsNoRounding = function(n, dp){
+      var j;
+      var e = '', s = e+n, l = s.length, b = n < 0 ? 1 : 0,
+          i = s.lastIndexOf('.'), j = i == -1 ? l : i,
+          r = e, d = s.substr(j+1, dp);
+      while ( (j-=3) > b ) { r = ',' + s.substr(j, 3) + r; }
+      return s.substr(0, j + 3) + r +
+        (dp ? '.' + d + ( d.length < dp ?
+            ('00000').substr(0, dp - d.length):e):e);
+    };
+
+    function won() {
+      pointer.cursor = "auto";
+      emitter.emit = false;
+      emitter2.emit = false;
+      emitter3.emit = false;
+      //blow up the earth
+      pop.playFrom(0);
+      assplosion.emit = true;
+
+
+      random_saw.pause();burn.pause();ignite.pause();ignite.pause();lordofthelotr.pause();
+      dead_earth_backer.visible = false;dead_earth_smoke_holder.visible = false;earth.visible=false;
+
+      pointer.release();
+      state = playAgain;
+    }
+
+    function playAgain(){
+      assplosion.emit = false;
+
+      //message.text = "YOU WON!";
+      //money_sum = 0;
+      setTimeout(function(){
+        pointer.cursor = "pointer";
+        earth.visible=true;dead_earth_backer.visible = true;dead_earth_smoke_holder.visible = true;
+
+        money_sum = 0;
+        state=play;
+      },6000)
+      state = wait;
+    }
+    function wait() {
+      return;
+    }
+    function play() {
+
+      //Use the earth's velocity to make it move
+      earth.x += earth.vx;
+      earth.y += earth.vy
+      earth.rotation += 0.001
+      dead_earth_smoke_holder.rotation = earth.rotation;dead_earth_backer.rotation = earth.rotation;
+
+      if (pointer.hitTestSprite(earth)) {
+        pointer.cursor = "pointer";
+      } else {
+        pointer.cursor = "auto";
+      }
+
+      if (earth_grind) {
+        message.text = updateMoney(1);
+
+        var rot = Math.random()/10;
+        var dir = Math.random() < .5 ? -1 : 1;
+        earth.rotation += rot * dir;
+        dead_earth_smoke_holder.rotation += rot * dir; dead_earth_backer.rotation = dead_earth_smoke_holder.rotation;
+
+        var offsety = Math.random();
+        var offsetx = Math.random();
+
+        if (earth.y > earth_y_lower_thresh) {
+          earth.y = earth_y_lower_thresh
+        } else if (earth.y < earth_y_upper_thresh) {
+          earth.y = earth_y_upper_thresh
+        } else {
+          earth.y += offsety * dir;
+        }
+
+        if (earth.x > earth_x_right_thresh) {
+          earth.x = earth_x_right_thresh
+        } else if (earth.x < earth_x_left_thresh) {
+          earth.x = earth_x_left_thresh
+        } else {
+          earth.x += offsetx * dir;
+        }
+        dead_earth.x = earth.x;dead_earth_smoke_holder.x = earth.x;dead_earth_backer.x = earth.x;
+        dead_earth.y = earth.y;dead_earth_smoke_holder.y = earth.y;dead_earth_backer.y = earth.y;
+
+        emitter.emit = true;
+        emitter2.emit = true;
+        if (money_sum > (max_earth_value - max_earth_value/4)) {
+          emitter3.emit = true;
+          if (toggle_burn != true) {
+            toggle_burn = true;
+            ignite.playFrom(0);
+            burn.playFrom(0);
+            burn.fade(1,.4);
+            clearInterval(timey);
+            lordofthelotr.pause();
+          }
+        }
+        if (money_sum > (max_earth_value + Math.random()*max_earth_value/7)) { //some amount between 5 quadrillion and 6 quadrillion as it wont really be right on estimate given above by treehugger
+          state = won;
+        }
+
+        tweak_bill_emitters();
+
+      } else {
+        emitter.emit = false;
+        emitter2.emit = false;
+
+        if (money_sum < (max_earth_value - max_earth_value/4)) {
+          emitter3.emit = false;
+        }
+
+        message.text = updateMoney(-1);
+
+        if (dead_earth.alpha > 0 && fadeSmoke) {
+          dead_earth.alpha -= .01;
+
+          if (toggle_burn != false) {
+            toggle_burn = false;
+
+            burn.fade(0,1.5);
+            ignite.fade(0,1.5);
+          }
+        }
+        if (dead_earth.alpha <= 0) {
+          emitter3.emit = false;
+        }
+      }
+    }
+
+
+    function tweak_bill_emitters() {
+      //console.log(pointer.x)
+      prev_pointer_x = prev_pointer_x == undefined ? pointer.x : prev_pointer_x;
+      prev_pointer_y = prev_pointer_y == undefined ? pointer.y : prev_pointer_y;
+
+      var pointer_x_accel = pointer.x - prev_pointer_x;
+      var pointer_y_accel = pointer.y - prev_pointer_y;
+      //console.log(pointer_x_accel)
+      var fun_offset = pointer_x_accel*3 < -200 ? -200 : pointer_x_accel*3
+      emitter["acceleration"] = emitter2["acceleration"] = {
+          x: -60+fun_offset,
+          y: 200
+      };
+
+
+      //emitter["endScale"] = 0.3+Math.abs(pointer_x_accel)/100;
+      //emitter2["endScale"] = 0.3+Math.abs(pointer_x_accel)/100;
+
+
+      prev_pointer_x = pointer.x;
+      prev_pointer_y = pointer.y;
+
+
+    }
+
+    function keyboard(keyCode) {
+      var key = {};
+      key.code = keyCode;
+      key.isDown = false;
+      key.isUp = true;
+      key.press = undefined;
+      key.release = undefined;
+      //The `downHandler`
+      key.downHandler = function(event) {
+        if (event.keyCode === key.code) {
+          if (key.isUp && key.press) key.press();
+          key.isDown = true;
+          key.isUp = false;
+        }
+        event.preventDefault();
+      };
+
+      //The `upHandler`
+      key.upHandler = function(event) {
+        if (event.keyCode === key.code) {
+          if (key.isDown && key.release) key.release();
+          key.isDown = false;
+          key.isUp = true;
+        }
+        event.preventDefault();
+      };
+
+      //Attach event listeners
+      window.addEventListener(
+        "keydown", key.downHandler.bind(key), false
+      );
+      window.addEventListener(
+        "keyup", key.upHandler.bind(key), false
+      );
+      return key;
+    }
+
+    </script>
+
+    <script src="js/gradient2.js"></script>
+
+
+
+
+    <canvas id="myCanvas">
+    </canvas>
+    <script>
+      $(document).ready(function(){
+        $('#container').css("left",$(window).width()/2-parseInt($("#container").css("width"))/2);
+        $('#container').css("top",$(window).height()/2-parseInt($("#container").css("height"))/2-50);
+      })
+    </script>
+
+  </body>
+
+</html>
