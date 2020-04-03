@@ -1,5 +1,6 @@
-# Five Quadrillion http://caitlinandmisha.com/five-quadrillion/
-Five Quadrillion: The Value of the Earth is an interactive, knee-jerk emotional response to the quantification of planetary value by Greg Laughlin of UC Santa Cruz.
+# Five Quadrillion: The Value of the Earth 
+http://caitlinandmisha.com/five-quadrillion/
+This is an interactive, knee-jerk emotional response to the quantification of planetary value by Greg Laughlin of UC Santa Cruz.
 
 ## Please note: there is sound when the user interacts (mouse on touchscreen, no keyboard needed). 
 
